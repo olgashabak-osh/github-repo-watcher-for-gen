@@ -1,16 +1,12 @@
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 
 // connect to database (or create it if it doesn't exist)
-const db = new sqlite3.Database('./database.db', (err) => {
-    if (err) {
-        console.error('Error connecting to database:', err.message);
-    } else {
-        console.log('Connected to SQLite database');
-    }
-});
+const db = new Database('database.db');
+
+console.log('Connected to SQlite database');
 
 // create table if it doesn't exist
-db.run(`
+db.exec(`
   CREATE TABLE IF NOT EXISTS subscriptions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT,
