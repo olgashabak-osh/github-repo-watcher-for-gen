@@ -43,6 +43,18 @@ http://localhost:3000
 
 ---
 
+## Docker
+
+Basic Docker setup is provided.
+
+To run with Docker:
+
+docker-compose up --build
+
+Note: Docker setup was not fully tested locally
+
+---
+
 ## API Documentation
 
 Open Swagger UI in browser:  
