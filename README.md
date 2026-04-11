@@ -1,11 +1,20 @@
+
+# GitHub Repo Watcher API
+
+## About this project
+
+This project was developed as a case task for the **Genesis Software Engineering School 6.0**.
+
+The goal was to build a backend service that allows users to subscribe to GitHub repositories and receive email notifications about new releases.
+
+The application also includes a simple web interface for easier interaction without using Swagger.
+
+---
+
 ![Node.js](https://img.shields.io/badge/Node.js-18-green)
 ![Express](https://img.shields.io/badge/Express.js-backend-black)
 ![SQLite](https://img.shields.io/badge/SQLite-database-blue)
 ![Render](https://img.shields.io/badge/Deployed%20on-Render-purple)
-
-# GitHub Repo Watcher API
-
-A backend service with a simple web interface for subscribing to GitHub repositories and tracking new releases.
 
 ---
 
