@@ -1,5 +1,4 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const { swaggerUi, swaggerSpec } = require('./swagger');
@@ -7,6 +6,7 @@ const db = require('./db');
 
 let transporter;
 
+// init email (Ethereal)
 nodemailer.createTestAccount().then(account => {
   transporter = nodemailer.createTransport({
     host: 'smtp.ethereal.email',
@@ -19,19 +19,15 @@ nodemailer.createTestAccount().then(account => {
 
   console.log('Ethereal ready');
 });
+
 const app = express();
 
+app.use(express.json());
+
+// Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-/*function sendEmail(to, repo, tag) {
-  console.log(`EMAIL → ${to}`);
-  console.log(`Repo: ${repo}`);
-  console.log(`Новий реліз: ${tag}`);
-}*/
-
 function sendEmail(to, repo, tag) {
-
-  // якщо transporter буде undefined 
   if (!transporter) {
     console.log('Email ще не готовий');
     return;
@@ -56,7 +52,6 @@ function sendEmail(to, repo, tag) {
   });
 }
 
-app.use(express.json());
 /**
  * @swagger
  * /:
@@ -67,7 +62,6 @@ app.use(express.json());
  *       200:
  *         description: Server is working
  */
-// перевірка сервера
 app.get('/', (req, res) => {
   res.send('Сервер працює');
 });
@@ -83,12 +77,12 @@ app.get('/', (req, res) => {
  *         description: List of repositories
  */
 app.get('/repos', (req, res) => {
-  db.all("SELECT * FROM subscriptions", [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
+  try {
+    const rows = db.prepare("SELECT * FROM subscriptions").all();
     res.json(rows);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 /**
@@ -117,44 +111,34 @@ app.get('/repos', (req, res) => {
  *       200:
  *         description: Subscription added successfully
  */
-// ДОДАВАННЯ ПІДПИСКИ
 app.post('/subscribe', async (req, res) => {
   const { email, repo } = req.body;
 
   if (!email || !repo) {
     return res.status(400).json({ error: '400 - Email і repo обовʼязкові' });
   }
-  // перевірка, що рядок має правильний формат
+
   if (!repo.includes('/')) {
     return res.status(400).json({ error: '400 - Невірний формат repo. Використовуй owner/repo' });
   }
 
   const parts = repo.split('/');
-
   if (parts.length !== 2 || !parts[0] || !parts[1]) {
     return res.status(400).json({ error: '400 - Невірний формат repo. Використовуй owner/repo' });
   }
 
   try {
-    // перевірка GitHub
     await axios.get(`https://api.github.com/repos/${repo}`);
 
-    // якщо repo існує → зберігаємо
-    db.run(
-      'INSERT INTO subscriptions (email, repo) VALUES (?, ?)',
-      [email, repo],
-      function (err) {
-        if (err) {
-          return res.status(500).json({ error: 'Помилка бази' });
-        }
+    const result = db.prepare(
+      'INSERT INTO subscriptions (email, repo) VALUES (?, ?)'
+    ).run(email, repo);
 
-        res.json({
-          message: 'Підписка додана 🎉',
-          id: this.lastID,
-          data: { email, repo }
-        });
-      }
-    );
+    res.json({
+      message: 'Підписка додана 🎉',
+      id: result.lastInsertRowid,
+      data: { email, repo }
+    });
 
   } catch (error) {
     if (error.response) {
@@ -175,80 +159,52 @@ app.post('/subscribe', async (req, res) => {
   }
 });
 
-// ОТРИМАТИ ВСІ ПІДПИСКИ
+/**
+ * @swagger
+ * /subscriptions:
+ *   get:
+ *     tags: [Subscriptions]
+ *     summary: Get all subscriptions
+ *     responses:
+ *       200:
+ *         description: List of subscriptions
+ */
 app.get('/subscriptions', (req, res) => {
-  db.all('SELECT * FROM subscriptions', [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: 'Помилка бази' });
-    }
-
+  try {
+    const rows = db.prepare('SELECT * FROM subscriptions').all();
     res.json(rows);
-  });
+  } catch (err) {
+    res.status(500).json({ error: 'Помилка бази' });
+  }
 });
-// запуск Scanner
+
+// Scanner (every 60 sec)
 setInterval(async () => {
   console.log('Scanner працює...');
 
-  db.all('SELECT * FROM subscriptions', [], async (err, rows) => {
-    if (err) {
-      console.error('Помилка при читанні з БД:', err.message);
-      return;
-    }
+  try {
+    const rows = db.prepare('SELECT * FROM subscriptions').all();
 
     for (const sub of rows) {
-
       try {
-
         const response = await axios.get(
           `https://api.github.com/repos/${sub.repo}/releases/latest`
         );
 
         const latestTag = response.data.tag_name;
 
-        console.log(`${sub.repo} → latest: ${latestTag}`);
-
-        // 1. перший запуск
-
         if (!sub.last_seen_tag) {
-
-          console.log('Перший запуск — зберігаємо тег');
-
-          db.run(
-            'UPDATE subscriptions SET last_seen_tag = ? WHERE id = ?',
-            [latestTag, sub.id]
-          );
-
-          /*
-            // 2.0 новий реліз тестимо на ethereal пошту
-          } else if (true) {
-            console.log('Новий реліз знайдено');
-      
-            db.run(
-              'UPDATE subscriptions SET last_seen_tag = ? WHERE id = ?',
-              [latestTag, sub.id]
-            );
-      
-            sendEmail(sub.email, sub.repo, latestTag);*/
-
-          // 2.1 новий реліз
+          db.prepare(
+            'UPDATE subscriptions SET last_seen_tag = ? WHERE id = ?'
+          ).run(latestTag, sub.id);
 
         } else if (sub.last_seen_tag !== latestTag) {
 
-          console.log('Новий реліз знайдено');
-
-          db.run(
-            'UPDATE subscriptions SET last_seen_tag = ? WHERE id = ?',
-            [latestTag, sub.id]
-          );
+          db.prepare(
+            'UPDATE subscriptions SET last_seen_tag = ? WHERE id = ?'
+          ).run(latestTag, sub.id);
 
           sendEmail(sub.email, sub.repo, latestTag);
-
-          // 3. нічого не змінилось
-
-        } else {
-
-          console.log(`Без змін (${sub.repo})`);
-
         }
 
       } catch (error) {
@@ -256,11 +212,13 @@ setInterval(async () => {
       }
     }
 
-  });
+  } catch (err) {
+    console.error('Помилка при читанні з БД:', err.message);
+  }
 
 }, 60000);
 
-// запуск сервера
+// start server
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
