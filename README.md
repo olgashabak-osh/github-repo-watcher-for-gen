@@ -137,6 +137,18 @@ SQLite database (`database.db`) stores:
 - SQLite is implemented using better-sqlite3 for compatibility with deployment environments  
 
 ---
+## Web Interface
+
+A simple web interface is available:
+
+https://github-repo-watcher-for-gen.onrender.com
+
+Allows users to:
+- Enter email
+- Enter repository (owner/repo)
+- Subscribe without using Swagger UI
+
+---
 
 ## Author
 
