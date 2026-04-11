@@ -1,6 +1,11 @@
+![Node.js](https://img.shields.io/badge/Node.js-18-green)
+![Express](https://img.shields.io/badge/Express.js-backend-black)
+![SQLite](https://img.shields.io/badge/SQLite-database-blue)
+![Render](https://img.shields.io/badge/Deployed%20on-Render-purple)
+
 # GitHub Repo Watcher API
 
-Backend service for subscribing to GitHub repositories and tracking new releases.
+A backend service with a simple web interface for subscribing to GitHub repositories and tracking new releases.
 
 ---
 
@@ -113,6 +118,15 @@ POST /subscribe
 3. Background scanner runs every 60 seconds  
 4. Latest GitHub tag is fetched via GitHub API  
 5. If a new tag appears — user receives email notification  
+
+---
+
+## Architecture
+
+- Express server handles API requests
+- SQLite database stores subscriptions
+- Background scanner checks GitHub releases every 60 seconds
+- Email notifications are sent via Nodemailer
 
 ---
 
