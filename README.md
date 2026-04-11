@@ -72,7 +72,11 @@ GET /repos — Get all subscriptions
 
 POST /subscribe — Add new subscription  
 
-Example request:
+---
+
+## Example request
+
+POST /subscribe
 
 {
   "email": "test@gmail.com",
@@ -102,14 +106,16 @@ SQLite database (database.db) stores:
 
 ---
 
-## Author
-
-Olga Shabak
-
----
-
 ## Notes
 
 - Server must be running to access Swagger UI  
 - Repository format must be: owner/repo  
-- Uses GitHub public API for fetching tags
+- Returns 400 if format is invalid  
+- Returns 404 if repository not found  
+- Uses GitHub public API for fetching tags  
+
+---
+
+## Author
+
+Olga Shabak
