@@ -23,6 +23,12 @@ http://localhost:3000/api-docs
 
 ---
 
+## Notifications
+
+Email notifications are sent when a new release is detected.
+For testing, Ethereal email service is used.
+---
+
 ## Tech Stack
 
 - Node.js
