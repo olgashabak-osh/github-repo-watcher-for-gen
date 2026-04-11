@@ -2,6 +2,7 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const axios = require('axios');
 const nodemailer = require('nodemailer');
+const { swaggerUi, swaggerSpec } = require('./swagger');
 
 let transporter;
 
@@ -18,6 +19,8 @@ nodemailer.createTestAccount().then(account => {
   console.log('Ethereal ready');
 });
 const app = express();
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /*function sendEmail(to, repo, tag) {
   console.log(`EMAIL → ${to}`);
@@ -90,12 +93,66 @@ db.run(`
 `);
 
 app.use(express.json());
-
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     tags: [Health]
+ *     summary: Check if server is running
+ *     responses:
+ *       200:
+ *         description: Server is working
+ */
 // перевірка сервера
 app.get('/', (req, res) => {
   res.send('Сервер працює');
 });
 
+/**
+ * @swagger
+ * /repos:
+ *   get:
+ *     tags: [Subscriptions]
+ *     summary: Get all repositories
+ *     responses:
+ *       200:
+ *         description: List of repositories
+ */
+app.get('/repos', (req, res) => {
+  db.all("SELECT * FROM subscriptions", [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(rows);
+  });
+});
+
+/**
+ * @swagger
+ * /subscribe:
+ *   post:
+ *     tags: [Subscriptions]
+ *     summary: Subscribe to repository
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - repo
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: test@gmail.com
+ *               repo:
+ *                 type: string
+ *                 example: facebook/react
+ *     responses:
+ *       200:
+ *         description: Subscription added successfully
+ */
 // ДОДАВАННЯ ПІДПИСКИ
 app.post('/subscribe', async (req, res) => {
   const { email, repo } = req.body;
