@@ -3,6 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const { swaggerUi, swaggerSpec } = require('./swagger');
+const db = require('./db');
 
 let transporter;
 
@@ -54,43 +55,6 @@ function sendEmail(to, repo, tag) {
     }
   });
 }
-
-// підключення бази
-const db = new sqlite3.Database('./database.db');
-
-db.serialize(() => {
-
-  // 1. створюємо таблицю
-  db.run(`
-    CREATE TABLE IF NOT EXISTS subscriptions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT,
-      repo TEXT
-    )
-  `);
-
-  // 2. додаємо колонку
-  db.run(`
-    ALTER TABLE subscriptions ADD COLUMN last_seen_tag TEXT
-  `, (err) => {
-    if (err && !err.message.includes('duplicate column')) {
-      console.error('Помилка при міграції:', err.message);
-    } else {
-      console.log('Міграція виконана (last_seen_tag)');
-    }
-  });
-
-});
-
-// створення таблиці
-db.run(`
-  CREATE TABLE IF NOT EXISTS subscriptions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT,
-    repo TEXT,
-    last_seen_tag TEXT
-  )
-`);
 
 app.use(express.json());
 /**
