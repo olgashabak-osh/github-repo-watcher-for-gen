@@ -2,10 +2,24 @@
 
 Backend service for subscribing to GitHub repositories and tracking new releases.
 
-## Demo
+---
 
-Swagger UI:
+## 🚀 Live Demo
+
+Deployed API:  
+https://github-repo-watcher-for-gen.onrender.com  
+
+Swagger UI:  
+https://github-repo-watcher-for-gen.onrender.com/api-docs  
+
+---
+
+## Demo (Local)
+
+Swagger UI:  
 http://localhost:3000/api-docs
+
+---
 
 ## Screenshot
 
@@ -25,15 +39,16 @@ http://localhost:3000/api-docs
 
 ## Notifications
 
-Email notifications are sent when a new release is detected.
+Email notifications are sent when a new release is detected.  
 For testing, Ethereal email service is used.
+
 ---
 
 ## Tech Stack
 
 - Node.js
 - Express
-- SQLite
+- SQLite (better-sqlite3)
 - Swagger (OpenAPI 3.0)
 - Axios
 
@@ -97,13 +112,13 @@ POST /subscribe
 2. Data is stored in SQLite database  
 3. Background scanner runs every 60 seconds  
 4. Latest GitHub tag is fetched via GitHub API  
-5. If a new tag appears — data is updated  
+5. If a new tag appears — user receives email notification  
 
 ---
 
 ## Database
 
-SQLite database (database.db) stores:
+SQLite database (`database.db`) stores:
 
 - id  
 - email  
@@ -115,10 +130,11 @@ SQLite database (database.db) stores:
 ## Notes
 
 - Server must be running to access Swagger UI  
-- Repository format must be: owner/repo  
+- Repository format must be: `owner/repo`  
 - Returns 400 if format is invalid  
 - Returns 404 if repository not found  
 - Uses GitHub public API for fetching tags  
+- SQLite is implemented using better-sqlite3 for compatibility with deployment environments  
 
 ---
 
