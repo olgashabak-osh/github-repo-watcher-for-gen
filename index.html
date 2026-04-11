@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub Repo Watcher</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f4f4;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: black;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="box">
+        <h2>Subscribe to Repo</h2>
+
+        <input id="email" placeholder="Email"><br>
+        <input id="repo" placeholder="owner/repo"><br>
+
+        <button onclick="subscribe()">Subscribe</button>
+
+        <p id="result"></p>
+    </div>
+
+    <script>
+        async function subscribe() {
+            const email = document.getElementById('email').value;
+            const repo = document.getElementById('repo').value;
+
+            try {
+                const res = await fetch('https://github-repo-watcher-for-gen.onrender.com/subscribe', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, repo })
+                });
+
+                const data = await res.json();
+
+                document.getElementById('result').innerText =
+                    data.message || data.error;
+
+            } catch (e) {
+                document.getElementById('result').innerText = "Error connecting to API";
+            }
+        }
+    </script>
+
+</body>
+
+</html>

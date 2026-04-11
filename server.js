@@ -3,6 +3,7 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 const { swaggerUi, swaggerSpec } = require('./swagger');
 const db = require('./db');
+const path = require ('path');
 
 let transporter;
 
@@ -23,6 +24,7 @@ nodemailer.createTestAccount().then(account => {
 const app = express();
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname)));
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -63,7 +65,7 @@ function sendEmail(to, repo, tag) {
  *         description: Server is working
  */
 app.get('/', (req, res) => {
-  res.send('Сервер працює');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 /**
